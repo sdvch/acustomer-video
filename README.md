@@ -196,6 +196,9 @@ Codex、Cursor、Qoder、VS Code Copilot 等工具共用同一套配置，**物�
 ```
 AGENTS.md                      # rules 唯一内容源（所有工具原生读取仓库根 AGENTS.md）
 .agents/skills/                # skills 唯一物理源
+├── business-compose-flow/     # 自研（中文）：获客短视频业务全流程与硬性业务规则
+├── oss-usage/                 # 自研（中文）：阿里云 OSS 配置/降级/安全红线/排障
+├── deploy-ops/                # 自研（中文）：发版流水线/服务器/nginx 红线/排障手册
 ├── frontend-code-style/       # 自研：前端可维护性规范 + Taro 平台适配层规则
 ├── frontend-design/           # 上游 anthropics/skills
 ├── vercel-react-best-practices/  # 上游 vercel-labs/agent-skills（rules/ 78 篇按需加载）
@@ -208,6 +211,8 @@ AGENTS.md                      # rules 唯一内容源（所有工具原生读�
 .qoder/rules/agents.md               # 指针
 .github/copilot-instructions.md       # 指针
 ```
+
+约定：**业务类 skill 一律中文撰写**；**AI 产生的 commit message 一律中文**（格式 `类型(范围): 中文摘要`，详见 AGENTS.md「Git 提交规范」）。
 
 更新社区 skill：按上面的上游仓库覆盖对应目录即可（结构对齐 Agent Skills 标准，frontmatter `name` 与目录名一致）。
 

@@ -53,8 +53,18 @@ cd miniprogram && npx tsc --noEmit
 - 大功能走 OpenSpec 流程：`/openspec-propose "想法"` → design/tasks → 实现 → 验证记录 → archive 同步规格；小 bugfix 无需走此流程
 - openspec CLI 用 `npx -y @fission-ai/openspec`（未全局安装）；工作流 skill 已在 `.agents/skills/openspec-*`
 
+## Git 提交规范（强制）
+
+- AI 生成的 commit message **必须使用中文**：`类型(范围): 中文摘要`，正文也用中文
+- 类型保留英文单词：feat / fix / chore / docs / test / refactor / style / perf / ci / build
+- 示例：`feat(合成): 新增字幕烧录与 BGM 混音`；`fix(存储): 修复本地降级 URL 缺少 PUBLIC_BASE_URL 导致资源 404`
+- 正文写清动机与影响范围，禁止无意义的 "update" / "修改" 式摘要
+- **push main 即上生产**，提交前必须过本地校验（见上节），未验证的改动先开分支
+
 ## AI 工具配置
 
 - rules 唯一源 = 本文件；skills 唯一源 = `.agents/skills/`
+- **业务类 skill 一律用中文撰写**（正文与 description），通用工程 skill 可沿用上游英文原文
+- skill 分工：业务全流程见 `business-compose-flow`；OSS/存储见 `oss-usage`；发版/服务器/nginx 见 `deploy-ops`；前端规范见 `frontend-code-style`
 - 新增 skill：在 `.agents/skills/<name>/SKILL.md`（frontmatter `name` 须与目录名一致、全小写字母数字连字符），然后运行 `./scripts/sync-agent-links.sh`
 - fresh clone 后运行一次 `./scripts/sync-agent-links.sh` 修复软链
