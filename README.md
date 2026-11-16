@@ -199,7 +199,8 @@ AGENTS.md                      # rules 唯一内容源（所有工具原生读�
 ├── frontend-code-style/       # 自研：前端可维护性规范 + Taro 平台适配层规则
 ├── frontend-design/           # 上游 anthropics/skills
 ├── vercel-react-best-practices/  # 上游 vercel-labs/agent-skills（rules/ 78 篇按需加载）
-└── zustand-patterns/          # 上游 yonatangross/orchestkit（项目使用 zustand）
+├── zustand-patterns/          # 上游 yonatangross/orchestkit（项目使用 zustand）
+└── openspec-*/                # OpenSpec 工作流（propose/apply/archive 等 6 个，CLI 自带）
 .cursor/skills  → ../.agents/skills   # 软链
 .qoder/skills   → ../.agents/skills   # 软链
 .github/skills  → ../.agents/skills   # 软链
@@ -209,6 +210,10 @@ AGENTS.md                      # rules 唯一内容源（所有工具原生读�
 ```
 
 更新社区 skill：按上面的上游仓库覆盖对应目录即可（结构对齐 Agent Skills 标准，frontmatter `name` 与目录名一致）。
+
+### 行为规格（OpenSpec）
+
+`openspec/specs/` 是系统行为规格的唯一权威源（成片规格数值边界、质检、任务、双端、存储、认证），本文档的规格表仅作概览。大功能开发走 spec 驱动流程：让 AI 执行 `/openspec-propose "想法"`，生成 proposal/design/tasks 后再实现，完成验证后 archive 同步规格。CLI：`npx -y @fission-ai/openspec`。
 
 - **新增 skill**：在 `.agents/skills/<name>/` 下写 `SKILL.md`（frontmatter 的 `name` 必须与目录名一致，全小写字母数字连字符），然后运行 `./scripts/sync-agent-links.sh` 校验软链。
 - **新增/修改规则**：只改根目录 `AGENTS.md`，不要在指针文件里写规则。

@@ -46,6 +46,13 @@ cd miniprogram && npx tsc --noEmit
 - 服务器 nginx 与 storyboard 项目共用：只改/并 `deploy/nginx-acv.conf` 片段，**绝不动** `/etc/nginx/conf.d/popreels.conf`
 - 与 storyboard-system 完全隔离（端口 18080/13306、独立库 acustomer_video、独立 bucket），禁止交叉引用其代码/配置
 
+## 行为规格（OpenSpec）
+
+- 行为规格唯一权威源：`openspec/specs/`（video-output 成片规格与出口断言、asset-quality 质检、compose-jobs 任务、dual-platform 双端、storage 存储、auth 认证）
+- README 与 `docs/` 的规格表仅作概览，冲突时以 `openspec/specs/` 为准；数值边界改动必须先改 spec 再改代码
+- 大功能走 OpenSpec 流程：`/openspec-propose "想法"` → design/tasks → 实现 → 验证记录 → archive 同步规格；小 bugfix 无需走此流程
+- openspec CLI 用 `npx -y @fission-ai/openspec`（未全局安装）；工作流 skill 已在 `.agents/skills/openspec-*`
+
 ## AI 工具配置
 
 - rules 唯一源 = 本文件；skills 唯一源 = `.agents/skills/`

@@ -1,0 +1,29 @@
+schema: spec-driven
+
+context: |
+  本项目是获客短视频拼接系统（acustomer-video）：Taro 4.x（React）小程序 + H5 双端前端，
+  Go(Gin) + MySQL 后端，ffmpeg 合成 1080×1920 竖屏成片。
+  使用中文撰写，保留官方 requirement/scenario 标题格式与 SHALL/MUST 关键字。
+  前端平台能力一律走 miniprogram/src/platform/ 适配层（TARO_ENV 构建分流），页面代码禁止 if (h5) 分支。
+  后端路由前缀代码内 /api/v1，对外 nginx 反代 /acv/v1；业务接口必须带 JWT。
+  ffmpeg 失败必须透出 stderr 尾部；worker 认领用 FOR UPDATE SKIP LOCKED。
+  成片规格硬约束：1080×1920/30fps/H.264 High@4.1/12Mbps 真 CBR(允许 8-15)/AAC 192k/48kHz/+faststart/时长 25-35s。
+  push main 即自动部署生产，禁止推送未过本地校验（gofmt/vet/test、tsc --noEmit）的代码。
+  与 storyboard-system 完全隔离（18080/13306、独立库、独立 bucket），禁止交叉引用。
+  禁止提交密钥、API Key 或真实凭证。
+
+rules:
+  proposal:
+    - 明确目标、影响能力、范围及不包含内容。
+  specs:
+    - 用 SHALL/MUST 表述要求，每项要求至少一个 WHEN/THEN 场景。
+    - 涉及 ffmpeg 规格、异步任务、双端差异或失败重试时必须定义可验收行为与数值边界。
+  design:
+    - 说明数据、接口、状态、恢复、兼容性及验证策略；遵循 AGENTS.md 架构约束。
+  tasks:
+    - 每个任务必须可验证，区分实现完成和真实环境验收；未验证不得勾选。
+
+operations:
+  archive:
+    guidance:
+      - 先确认 tasks 完成、验证证据记录在 validation.md，再同步当前规格并归档。
