@@ -1,5 +1,8 @@
 # AI 门店获客视频系统（acustomer-video）
 
+[![CI](https://github.com/zhao-yi-fan/acustomer-video/actions/workflows/ci.yml/badge.svg)](https://github.com/zhao-yi-fan/acustomer-video/actions/workflows/ci.yml)
+[![Release](https://github.com/zhao-yi-fan/acustomer-video/actions/workflows/release.yml/badge.svg)](https://github.com/zhao-yi-fan/acustomer-video/actions/workflows/release.yml)
+
 用 **Taro 4.x 微信小程序 + Go(Gin) 后端** 实现的获客短视频拼接系统。把用户上传的图片/视频素材拼接成 1080×1920 竖屏成片。
 
 ## 与短剧项目（storyboard-system）的隔离
@@ -82,6 +85,42 @@ DEEPSEEK_MODEL=deepseek-v4-flash
 - 登录：`wx.login` → `POST /auth/login`，服务端 `jscode2session` 换 openid，按 `(open_id, platform)` 落 `users` 表并签发 JWT（7 天）。所有业务接口现在**必须**带 token。
 - 文案：`POST /ai/copy` 生成 3 条钩子 + 正文 + CTA，编辑页有"AI 生成获客文案"按钮，点钩子可复制（详见 `docs/api.md`）。
 
+
+## 持续集成与发布
+
+流水线在 `.github/workflows/`，无需额外配置即可运行（使用内置 `GITHUB_TOKEN`）。
+
+### CI（`ci.yml`）
+
+PR 与推送到 `main`/`dev` 时触发，同一分支的新提交会自动取消上一次运行：
+
+| Job | 内容 |
+|---|---|
+| 后端 · Go 编译与测试 | `gofmt` 检查 → `go vet` → `go build` → `go test -race` + 覆盖率 |
+| 小程序 · 类型检查与构建 | `npm ci` → `tsc --noEmit` → `taro build`，产物 `weapp-dist` 可在 Actions 页下载，直接用微信开发者工具导入 |
+| 部署 · 镜像可构建性 | 构建 `server/Dockerfile` 并断言镜像内 `ffmpeg`/`ffprobe` 可用 |
+
+本地提交前对齐检查：
+
+```bash
+cd server && gofmt -l . && go vet ./... && go test ./...
+cd miniprogram && npx tsc --noEmit
+```
+
+### 发布（`release.yml`）
+
+打语义化标签即发布：
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+- 后端镜像推送至 `ghcr.io/zhao-yi-fan/acustomer-video`（同时打 `latest`）
+- 小程序构建产物打包为 `weapp-v0.1.0.zip` 附到 Release，可直接导入微信开发者工具
+
+服务器拉取镜像：`docker pull ghcr.io/zhao-yi-fan/acustomer-video:latest`（公开仓库的包默认可匿名拉取，若为私有需 `docker login ghcr.io`）。
+
+> 说明：Taro 的原生 binding 走 `optionalDependencies`，本仓库 lockfile 在 macOS 生成，只锁了 darwin 包，因此流水线里显式补装 Linux 版本；本地 macOS 无需处理。
 
 ## 部署
 
