@@ -2,8 +2,5 @@ import { defineConfig } from '@tarojs/cli'
 
 export default defineConfig({
   env: { NODE_ENV: '"production"' },
-  defineConstants: {
-    // 替换为已备案的 HTTPS 域名（小程序后台配置 request/uploadFile 合法域名）
-    API_BASE: '"https://your-domain.com/api/v1"',
-  },
+  // 接口地址统一在 config/index.ts 定义，构建时用 API_BASE 环境变量注入
 })

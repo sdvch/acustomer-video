@@ -2,7 +2,5 @@ import { defineConfig } from '@tarojs/cli'
 
 export default defineConfig({
   env: { NODE_ENV: '"development"' },
-  defineConstants: {
-    API_BASE: '"http://localhost:18080/api/v1"',
-  },
+  // 接口地址统一在 config/index.ts 定义（此处的 defineConstants 会被覆盖）
 })

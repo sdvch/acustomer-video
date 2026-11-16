@@ -13,10 +13,17 @@ export function setToken(token: string) {
 export async function ensureLogin(): Promise<string> {
   let token = getToken()
   if (token) return token
-  const res = await Taro.login()
+  let code = ''
+  try {
+    const res = await Taro.login()
+    code = res.code
+  } catch {
+    // 浏览器预览（h5）没有微信登录能力，退化为固定 code：后端未配 WECHAT_APP_ID 时走 dev 单用户
+    code = 'h5-preview'
+  }
   const resp = await request<any>('/auth/login', {
     method: 'POST',
-    data: { platform: getPlatform(), code: res.code },
+    data: { platform: getPlatform(), code: code || 'h5-preview' },
   }, false)
   token = resp.token
   setToken(token)

@@ -113,6 +113,18 @@ jobs:
           path: miniprogram/dist/weapp
           retention-days: 7
 
+      # H5 只是浏览器预览版，但仍需保证能构建（配置写坏会直接红）
+      - name: 构建 H5 预览版
+        run: npm run build:h5
+        env:
+          NODE_ENV: production
+          API_BASE: https://your-domain.com/api/v1
+
+      - name: 检查 H5 产物
+        run: |
+          test -f dist/h5/index.html || { echo "::error::缺少 dist/h5/index.html"; exit 1; }
+          test -f dist/h5/js/app.js || { echo "::error::缺少 dist/h5/js/app.js"; exit 1; }
+
   docker:
     name: 部署 · 镜像可构建性
     runs-on: ubuntu-latest
