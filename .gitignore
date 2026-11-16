@@ -26,5 +26,9 @@ miniprogram/.swc/
 .idea/
 .vscode/
 
+# AI 工具本地私有文件（软链与 rules 指针本身要入库）
+AGENTS.local.md
+.qoder/settings.local.json
+
 # 发布产物
 *.zip

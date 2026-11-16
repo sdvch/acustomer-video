@@ -188,3 +188,25 @@ ssh admin@<host> 'cd ~/acustomer-video && git pull && ./scripts/deploy.sh'   # �
 ## 目标平台
 
 **微信小程序（主投放端）+ H5 浏览器版**，同一份 Taro 代码双端编译。小程序用微信开发者工具导入 `miniprogram/`（需填入本项目独立 AppID），接口域名加入小程序后台 request/uploadFile/downloadFile 合法域名白名单；H5 由 `deploy.yml` 自动发布到服务器。
+
+## AI 工具配置（skills / rules 单一源 + 软链共用）
+
+Codex、Cursor、Qoder、VS Code Copilot 等工具共用同一套配置，**物理文件只有一份**：
+
+```
+AGENTS.md                      # rules 唯一内容源（所有工具原生读取仓库根 AGENTS.md）
+.agents/skills/                # skills 唯一物理源
+└── frontend-code-style/SKILL.md
+.cursor/skills  → ../.agents/skills   # 软链
+.qoder/skills   → ../.agents/skills   # 软链
+.github/skills  → ../.agents/skills   # 软链
+.cursor/rules/agents.mdc             # 指针（@../../AGENTS.md）
+.qoder/rules/agents.md               # 指针
+.github/copilot-instructions.md       # 指针
+```
+
+- **新增 skill**：在 `.agents/skills/<name>/` 下写 `SKILL.md`（frontmatter 的 `name` 必须与目录名一致，全小写字母数字连字符），然后运行 `./scripts/sync-agent-links.sh` 校验软链。
+- **新增/修改规则**：只改根目录 `AGENTS.md`，不要在指针文件里写规则。
+- **fresh clone 后**：运行一次 `./scripts/sync-agent-links.sh`（支持 `--check` 只校验不修复）。
+- **Windows 协作者**：需开启开发者模式或 `git config --global core.symlinks true`，否则软链会 checkout 成文本文件；跑上面的脚本即可修复。
+- 注意：新版 Cursor / Copilot 会同时原生读取 `.agents/skills/` 和软链目录，skill 在菜单中可能出现两次，属预期行为；如需收敛可删除对应软链并从脚本 `LINKS` 中移除，不影响物理源。

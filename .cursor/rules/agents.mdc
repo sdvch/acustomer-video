@@ -1,0 +1,6 @@
+---
+description: "项目唯一规则源：根目录 AGENTS.md"
+alwaysApply: true
+---
+
+@../../AGENTS.md
