@@ -1,0 +1,94 @@
+name: Release
+
+# 打 v* 标签即发布：后端镜像推送到 GHCR，小程序产物作为 Release 附件
+# 用法：git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # 创建 Release
+  packages: write # 推送 GHCR 镜像
+
+jobs:
+  image:
+    name: 发布后端镜像 · GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: 登录 GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 生成镜像标签
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: 构建并推送
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  miniprogram:
+    name: 发布小程序产物 · Release 附件
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: miniprogram
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: miniprogram/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci --legacy-peer-deps
+
+      - name: 构建微信小程序
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 打包产物
+        run: |
+          cd dist/weapp
+          zip -rq "../../weapp-${{ github.ref_name }}.zip" .
+          cd ../..
+          ls -lh "weapp-${{ github.ref_name }}.zip"
+
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: miniprogram/weapp-${{ github.ref_name }}.zip
+          generate_release_notes: true
+          body: |
+            ## 构建产物
+
+            - 后端镜像：`ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
+            - 小程序：下载 `weapp-${{ github.ref_name }}.zip`，用微信开发者工具导入
+
+            ## 部署提示
+
+            镜像内已包含 ffmpeg/ffprobe。启动前需准备环境变量（见 `deploy/.env.example`），
+            数据库需使用本项目独立实例，勿与其它项目共用。

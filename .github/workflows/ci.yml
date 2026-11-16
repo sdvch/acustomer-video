@@ -1,0 +1,128 @@
+name: CI
+
+# PR 与主干推送都跑：后端编译/测试、小程序类型检查与构建、镜像可构建性
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+# 同一分支的新提交会取消上一次未完成的运行，省 Actions 额度
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: 后端 · Go 编译与测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+
+      - name: 下载依赖
+        run: go mod download
+
+      - name: 代码格式检查 (gofmt)
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::以下文件未按 gofmt 格式化，请本地执行 cd server && gofmt -w ."
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: 静态检查 (go vet)
+        run: go vet ./...
+
+      - name: 编译全部包
+        run: go build -v ./...
+
+      - name: 单元测试
+        run: go test ./... -race -covermode=atomic -coverprofile=coverage.out
+
+      - name: 上传覆盖率报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: server/coverage.out
+          if-no-files-found: ignore
+          retention-days: 7
+
+  miniprogram:
+    name: 小程序 · 类型检查与构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: miniprogram
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: miniprogram/package-lock.json
+
+      # Taro 4.3.3 的部分依赖存在 peer 冲突，本地也使用 --legacy-peer-deps
+      - name: 安装依赖
+        run: npm ci --legacy-peer-deps
+
+      - name: 类型检查
+        run: npx tsc --noEmit
+
+      - name: 构建微信小程序
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 检查构建产物
+        run: |
+          test -f dist/weapp/app.js || { echo "::error::缺少 dist/weapp/app.js，构建产物异常"; exit 1; }
+          test -f dist/weapp/app.json || { echo "::error::缺少 dist/weapp/app.json"; exit 1; }
+          echo "产物文件数: $(find dist/weapp -type f | wc -l)"
+
+      # 产物可直接用微信开发者工具导入预览，无需本地再构建
+      - name: 上传小程序产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: weapp-dist
+          path: miniprogram/dist/weapp
+          retention-days: 7
+
+  docker:
+    name: 部署 · 镜像可构建性
+    runs-on: ubuntu-latest
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # 只验证能构建，不推送；推送在 release.yml
+      - name: 构建后端镜像
+        uses: docker/build-push-action@v6
+        with:
+          context: server
+          push: false
+          load: true
+          tags: acustomer-video-server:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 镜像里必须带 ffmpeg/ffprobe，否则合成任务全线失败
+      - name: 校验镜像内 ffmpeg
+        run: |
+          docker run --rm --entrypoint sh acustomer-video-server:ci -c 'ffmpeg -version | head -1 && ffprobe -version | head -1'

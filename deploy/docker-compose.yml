@@ -1,0 +1,55 @@
+# 独立 stack：与 storyboard-system 完全隔离（独立 project name / 端口 / 数据卷 / 网络）
+name: acustomer-video
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: acustomer-video-mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${MYSQL_HOST_PORT:-13306}:3306"
+    volumes:
+      - acustomer_mysql_data:/var/lib/mysql
+      - ../server/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - acustomer-net
+
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: acustomer-video-server
+    env_file:
+      - .env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+    ports:
+      - "${SERVER_HOST_PORT:-18080}:18080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - acustomer_storage:/app/storage
+    restart: unless-stopped
+    networks:
+      - acustomer-net
+
+volumes:
+  acustomer_mysql_data:
+  acustomer_storage:
+
+networks:
+  acustomer-net:
+    driver: bridge

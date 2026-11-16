@@ -1,0 +1,10 @@
+.mine { padding-top: 40rpx; }
+.profile { display: flex; align-items: center; }
+.avatar {
+  width: 110rpx; height: 110rpx; border-radius: 50%;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44rpx; font-weight: 700; margin-right: 28rpx;
+}
+.nickname { display: block; font-size: 34rpx; font-weight: 700; margin-bottom: 8rpx; }
+.tip-line { display: block; font-size: 26rpx; line-height: 1.9; }

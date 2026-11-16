@@ -1,0 +1,31 @@
+{
+  "name": "acustomer-video-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI门店获客视频系统 - Taro 微信小程序",
+  "scripts": {
+    "dev": "taro build --type weapp --watch",
+    "build": "taro build --type weapp"
+  },
+  "dependencies": {
+    "@tarojs/components": "4.3.3",
+    "@tarojs/plugin-framework-react": "4.3.3",
+    "@tarojs/react": "4.3.3",
+    "@tarojs/runtime": "4.3.3",
+    "@tarojs/taro": "4.3.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zustand": "4.5.5"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^8.0.1",
+    "@babel/preset-typescript": "^8.0.7",
+    "@tarojs/cli": "4.3.3",
+    "@tarojs/plugin-platform-weapp": "4.3.3",
+    "@tarojs/webpack5-runner": "4.3.3",
+    "@types/react": "18.3.12",
+    "babel-preset-taro": "^4.3.3",
+    "typescript": "5.6.3",
+    "webpack": "5.91.0"
+  }
+}

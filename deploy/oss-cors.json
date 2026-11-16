@@ -1,0 +1,13 @@
+{
+  "CORSConfiguration": {
+    "CORSRule": [
+      {
+        "AllowedOrigin": ["https://*.qq.com", "https://servicewechat.com"],
+        "AllowedMethod": ["GET", "PUT", "POST", "HEAD"],
+        "AllowedHeader": ["*"],
+        "ExposeHeader": ["ETag", "x-oss-request-id"],
+        "MaxAgeSeconds": 3600
+      }
+    ]
+  }
+}

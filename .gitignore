@@ -1,0 +1,30 @@
+# 环境配置与密钥（绝不提交）
+.env
+**/.env
+!**/.env.example
+
+# 依赖
+node_modules/
+dist/
+.temp/
+bin/
+*.exe
+
+# 存储与临时文件
+server/storage/
+storage/
+*.mp4
+*.mov
+*.log
+
+# 构建缓存
+miniprogram/.swc/
+*.tsbuildinfo
+
+# 系统
+.DS_Store
+.idea/
+.vscode/
+
+# 发布产物
+*.zip

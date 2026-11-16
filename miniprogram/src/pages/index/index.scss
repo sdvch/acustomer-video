@@ -1,0 +1,22 @@
+.home { padding-top: 60rpx; }
+.hero {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  border-radius: 24rpx;
+  padding: 56rpx 40rpx;
+  margin-bottom: 32rpx;
+  color: #fff;
+  .hero-title { display: block; font-size: 48rpx; font-weight: 800; }
+  .hero-sub { display: block; font-size: 26rpx; margin-top: 16rpx; opacity: 0.9; }
+}
+.step {
+  display: flex; align-items: center; margin-bottom: 28rpx;
+  .step-no {
+    width: 56rpx; height: 56rpx; border-radius: 50%;
+    background: #efeaff; color: #6c5ce7; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 24rpx; font-size: 28rpx; flex-shrink: 0;
+  }
+  .step-t { display: block; font-size: 30rpx; font-weight: 600; }
+  .step-d { display: block; font-size: 24rpx; color: #8a8a99; margin-top: 6rpx; }
+}
+.home-tip { margin-top: 28rpx; text-align: center; line-height: 1.6; }

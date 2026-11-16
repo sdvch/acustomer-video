@@ -1,0 +1,10 @@
+.works { padding-bottom: 40rpx; }
+.empty { text-align: center; padding: 60rpx 32rpx; .btn-primary { margin-top: 32rpx; } }
+.work-video { width: 100%; height: 700rpx; border-radius: 16rpx; background: #000; }
+.work-meta { display: block; font-size: 24rpx; color: #8a8a99; margin: 16rpx 0; }
+.work-actions { display: flex; gap: 16rpx; }
+.work-actions .btn-primary, .work-actions .btn-secondary { flex: 1; font-size: 26rpx; padding: 14rpx 0; }
+.btn-secondary {
+  background: #fff; color: #6c5ce7; border: 2rpx solid #6c5ce7;
+  border-radius: 44rpx; text-align: center;
+}
