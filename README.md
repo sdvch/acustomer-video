@@ -159,10 +159,24 @@ docker compose up -d --build
 
 > **不要改** `/etc/nginx/conf.d/popreels.conf`，该文件由 storyboard 的部署脚本覆盖。
 
-更新发布：
+### 发布方式
+
+**push `main` 即自动部署**（`.github/workflows/deploy.yml`，与短剧项目同款 SSH 模式）：
+
+1. Actions 在 CI 环境构建 H5 产物（注入线上 `API_BASE`）
+2. SSH 到 ECS：`git pull` → `scripts/deploy.sh`（后端源码构建 + 容器重启 + 健康检查）
+3. H5 产物 scp 上去解压到 nginx 静态目录，替换完成即生效
+
+Secrets（repo 级）：`ECS_HOST` / `ECS_USER` / `ECS_SSH_KEY`（专用部署密钥 ed25519，公钥在服务器
+`~/.ssh/authorized_keys`）。轮换密钥：本地 `ssh-keygen -t ed25519` → 公钥追加 authorized_keys →
+`gh secret set ECS_SSH_KEY < 私钥` → 删旧公钥。
+
+打 `v*` 标签则触发 Release（GHCR 镜像 + 小程序 zip 附件），见 `.github/workflows/release.yml`。
+
+手动干预（不推荐，日常用自动部署即可）：
 
 ```bash
-ssh admin@<host> 'cd ~/acustomer-video && git pull && cd deploy && docker compose up -d --build'
+ssh admin@<host> 'cd ~/acustomer-video && git pull && ./scripts/deploy.sh'   # 仅后端
 ```
 
 国内网络注意事项（已在仓库里默认处理好）：
@@ -173,4 +187,4 @@ ssh admin@<host> 'cd ~/acustomer-video && git pull && cd deploy && docker compos
 
 ## 目标平台
 
-**仅微信小程序**（Taro 编译到 weapp）。用微信开发者工具导入 `miniprogram/`（需填入本项目独立 AppID），接口域名加入小程序后台 request/uploadFile/downloadFile 合法域名白名单。
+**微信小程序（主投放端）+ H5 浏览器版**，同一份 Taro 代码双端编译。小程序用微信开发者工具导入 `miniprogram/`（需填入本项目独立 AppID），接口域名加入小程序后台 request/uploadFile/downloadFile 合法域名白名单；H5 由 `deploy.yml` 自动发布到服务器。

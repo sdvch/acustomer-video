@@ -1,0 +1,75 @@
+name: Deploy to ECS
+
+# 与短剧项目同款模式：push main 即部署（AppleBoy SSH Action + Secrets）
+# 后端：服务器 git pull 后源码构建（国内拉 GHCR 慢，源码构建反而快）
+# H5：   Actions 构建产物（注入线上 API 地址）→ scp → 服务器 nginx 静态目录
+# Secrets：ECS_HOST / ECS_USER / ECS_SSH_KEY（专用部署密钥，见 README）
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ecs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: 部署后端 + H5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: miniprogram/package-lock.json
+
+      - name: 构建 H5（注入线上 API 地址）
+        working-directory: miniprogram
+        run: |
+          npm ci --legacy-peer-deps
+          # Linux runner 需补装 Taro 原生 binding（与 CI/Release 相同）
+          BINDING_V=$(node -p "require('@tarojs/binding/package.json').version")
+          DOCTOR_V=$(node -p "require('@tarojs/plugin-doctor/package.json').version")
+          npm i --no-save --legacy-peer-deps \
+            "@tarojs/binding-linux-x64-gnu@${BINDING_V}" \
+            "@tarojs/plugin-doctor-linux-x64-gnu@${DOCTOR_V}"
+          npm run build:h5
+        env:
+          NODE_ENV: production
+          API_BASE: http://8.152.208.234/acv/v1
+
+      - name: 打包 H5 产物
+        run: tar czf acv-h5.tar.gz -C miniprogram/dist/h5 .
+
+      - name: 上传 H5 产物到服务器
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          source: acv-h5.tar.gz
+          target: /tmp
+
+      - name: 部署后端并发布 H5
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/acustomer-video
+            git fetch origin main
+            git merge --ff-only origin/main
+            git log --oneline -1
+            ./scripts/deploy.sh
+
+            # H5：解压到 nginx 静态目录
+            sudo rm -rf /home/admin/acv-h5/*
+            sudo tar xzf /tmp/acv-h5.tar.gz -C /home/admin/acv-h5
+            sudo chown -R admin:admin /home/admin/acv-h5
+            rm -f /tmp/acv-h5.tar.gz
+            curl -s -o /dev/null -m 10 -w "H5 index: %{http_code}\n" http://127.0.0.1/acv-h5/
