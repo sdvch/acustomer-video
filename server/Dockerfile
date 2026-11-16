@@ -11,7 +11,7 @@ RUN apk add --no-cache ffmpeg ca-certificates tzdata \
 WORKDIR /app
 COPY --from=builder /server /app/server
 COPY migrations /app/migrations
-COPY assets/fonts /app/assets/fonts
+COPY assets /app/assets
 ENV TZ=Asia/Shanghai
 EXPOSE 18080
 CMD ["/app/server"]

@@ -65,6 +65,15 @@ jobs:
       - name: 安装依赖
         run: npm ci --legacy-peer-deps
 
+      # 同 CI：Linux runner 需补装 Taro 原生 binding
+      - name: 补装 Linux 原生 binding
+        run: |
+          BINDING_V=$(node -p "require('@tarojs/binding/package.json').version")
+          DOCTOR_V=$(node -p "require('@tarojs/plugin-doctor/package.json').version")
+          npm i --no-save --legacy-peer-deps \
+            "@tarojs/binding-linux-x64-gnu@${BINDING_V}" \
+            "@tarojs/plugin-doctor-linux-x64-gnu@${DOCTOR_V}"
+
       - name: 构建微信小程序
         run: npm run build
         env:

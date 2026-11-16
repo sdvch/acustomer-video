@@ -80,6 +80,17 @@ jobs:
       - name: 安装依赖
         run: npm ci --legacy-peer-deps
 
+      # Taro 的原生 binding 走 optionalDependencies，lockfile 在 macOS 生成时只锁了 darwin 包，
+      # Linux runner 必须显式补装，否则 taro build 启动即报 Cannot find module
+      - name: 补装 Linux 原生 binding
+        run: |
+          BINDING_V=$(node -p "require('@tarojs/binding/package.json').version")
+          DOCTOR_V=$(node -p "require('@tarojs/plugin-doctor/package.json').version")
+          echo "binding=$BINDING_V doctor=$DOCTOR_V"
+          npm i --no-save --legacy-peer-deps \
+            "@tarojs/binding-linux-x64-gnu@${BINDING_V}" \
+            "@tarojs/plugin-doctor-linux-x64-gnu@${DOCTOR_V}"
+
       - name: 类型检查
         run: npx tsc --noEmit
 

@@ -1,0 +1,9 @@
+# 构建镜像时排除的本地文件（否则本地数据会被打进构建上下文与镜像层）
+storage/
+bin/
+.env
+.env.*
+*.mp4
+*.mov
+*.log
+.DS_Store
