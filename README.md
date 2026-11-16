@@ -125,14 +125,40 @@ git tag v0.1.0 && git push origin v0.1.0
 ## 部署
 
 - `deploy/docker-compose.yml` — 独立 MySQL（宿主机端口 13306）+ 后端容器（18080），数据卷/网络/容器名均带 `acustomer-` 前缀，与旧项目完全隔离
-- `deploy/nginx.conf` — 独立 server 块反代 18080（与旧项目共用 nginx 进程，但不共用 upstream/端口）
+- `deploy/nginx-acv.conf` — **对外入口片段**（见下）
 - `server/Dockerfile` — 多阶段构建，镜像内自带 ffmpeg
 - `deploy/oss-cors.json` — 新 bucket 的 CORS 规则
 
 ```bash
 cd deploy && cp .env.example .env   # 填入 OSS AK/SK 等真实值
-docker compose up -d                # 服务器上执行（本机 Docker daemon 未运行时跳过）
+docker compose up -d --build
 ```
+
+### 线上实例（阿里云 ECS）
+
+| 项 | 值 |
+|---|---|
+| API 入口 | `http://8.152.208.234/acv/v1` |
+| 健康检查 | `http://8.152.208.234/acv/v1/health` |
+| 静态文件 | `http://8.152.208.234/storage/<objectKey>`（仅本地存储模式） |
+| 代码目录 | `/home/admin/acustomer-video`（git clone，`deploy/.env` 未入库） |
+| MySQL | 容器内 13306 映射，库 `acustomer_video`，与 storyboard 完全隔离 |
+
+安全组只放行 80/443，18080 不直接对外，因此通过现有 nginx 加路径前缀反代（片段见 `deploy/nginx-acv.conf`，需并入 `/etc/nginx/nginx.conf` 的 80 `default_server`）。
+
+> **不要改** `/etc/nginx/conf.d/popreels.conf`，该文件由 storyboard 的部署脚本覆盖。
+
+更新发布：
+
+```bash
+ssh admin@<host> 'cd ~/acustomer-video && git pull && cd deploy && docker compose up -d --build'
+```
+
+国内网络注意事项（已在仓库里默认处理好）：
+
+- Docker Hub 直连超时 → 用 `docker.m.daocloud.io` 拉基础镜像后 retag
+- `apk add ffmpeg` 卡死 → `APK_MIRROR=mirrors.aliyun.com`
+- Go 模块下载慢 → `GOPROXY=https://goproxy.cn,direct`
 
 ## 目标平台
 
