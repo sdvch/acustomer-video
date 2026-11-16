@@ -36,9 +36,10 @@ jobs:
           npm i --no-save --legacy-peer-deps \
             "@tarojs/binding-linux-x64-gnu@${BINDING_V}" \
             "@tarojs/plugin-doctor-linux-x64-gnu@${DOCTOR_V}"
-          npm run build:h5
+          # 注意：NODE_ENV=production 只能给构建命令，
+          # 否则 npm ci 会跳过 devDependencies（taro/webpack 全是 devDep）
+          NODE_ENV=production npm run build:h5
         env:
-          NODE_ENV: production
           API_BASE: http://8.152.208.234/acv/v1
 
       - name: 打包 H5 产物
