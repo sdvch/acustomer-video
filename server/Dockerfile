@@ -9,7 +9,12 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
 
 FROM alpine:3.20
-RUN apk add --no-cache ffmpeg ca-certificates tzdata \
+# 国内构建时把 alpine 源换成镜像站，否则 apk 下载 ffmpeg 依赖会长时间卡住
+ARG APK_MIRROR=""
+RUN if [ -n "$APK_MIRROR" ]; then \
+        sed -i "s|dl-cdn.alpinelinux.org|${APK_MIRROR}|g" /etc/apk/repositories; \
+    fi \
+    && apk add --no-cache ffmpeg ca-certificates tzdata \
     && mkdir -p /app/storage /app/migrations /app/assets/fonts
 WORKDIR /app
 COPY --from=builder /server /app/server

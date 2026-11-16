@@ -37,6 +37,8 @@ services:
       args:
         # 国内 ECS 直连 proxy.golang.org 容易超时，默认走 goproxy.cn
         GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
+        # 国内 ECS 拉 alpine 官方源很慢，默认走阿里云镜像
+        APK_MIRROR: ${APK_MIRROR:-mirrors.aliyun.com}
     container_name: acustomer-video-server
     env_file:
       - .env
