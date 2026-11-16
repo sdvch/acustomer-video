@@ -196,7 +196,10 @@ Codex、Cursor、Qoder、VS Code Copilot 等工具共用同一套配置，**物�
 ```
 AGENTS.md                      # rules 唯一内容源（所有工具原生读取仓库根 AGENTS.md）
 .agents/skills/                # skills 唯一物理源
-└── frontend-code-style/SKILL.md
+├── frontend-code-style/       # 自研：前端可维护性规范 + Taro 平台适配层规则
+├── frontend-design/           # 上游 anthropics/skills
+├── vercel-react-best-practices/  # 上游 vercel-labs/agent-skills（rules/ 78 篇按需加载）
+└── zustand-patterns/          # 上游 yonatangross/orchestkit（项目使用 zustand）
 .cursor/skills  → ../.agents/skills   # 软链
 .qoder/skills   → ../.agents/skills   # 软链
 .github/skills  → ../.agents/skills   # 软链
@@ -204,6 +207,8 @@ AGENTS.md                      # rules 唯一内容源（所有工具原生读�
 .qoder/rules/agents.md               # 指针
 .github/copilot-instructions.md       # 指针
 ```
+
+更新社区 skill：按上面的上游仓库覆盖对应目录即可（结构对齐 Agent Skills 标准，frontmatter `name` 与目录名一致）。
 
 - **新增 skill**：在 `.agents/skills/<name>/` 下写 `SKILL.md`（frontmatter 的 `name` 必须与目录名一致，全小写字母数字连字符），然后运行 `./scripts/sync-agent-links.sh` 校验软链。
 - **新增/修改规则**：只改根目录 `AGENTS.md`，不要在指针文件里写规则。
