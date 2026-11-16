@@ -1,4 +1,7 @@
 FROM golang:1.26-alpine AS builder
+# 允许构建时覆盖模块代理（国内 ECS 直连 proxy.golang.org 经常超时）
+ARG GOPROXY=https://proxy.golang.org,direct
+ENV GOPROXY=${GOPROXY}
 WORKDIR /build
 COPY go.mod go.sum* ./
 RUN go mod download

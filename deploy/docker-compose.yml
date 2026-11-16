@@ -5,7 +5,12 @@ services:
   mysql:
     image: mysql:8.0
     container_name: acustomer-video-mysql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=128M
+      --performance-schema=OFF
+      --max-connections=60
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -29,6 +34,9 @@ services:
     build:
       context: ../server
       dockerfile: Dockerfile
+      args:
+        # 国内 ECS 直连 proxy.golang.org 容易超时，默认走 goproxy.cn
+        GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
     container_name: acustomer-video-server
     env_file:
       - .env
@@ -40,6 +48,12 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:18080/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - acustomer_storage:/app/storage
     restart: unless-stopped
