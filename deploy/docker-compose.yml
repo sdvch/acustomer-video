@@ -45,6 +45,12 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: "3306"
+      # 本地降级目录必须与下方 volume 挂载点一致，否则成片写在容器内、重启即丢
+      STORAGE_DIR: /app/storage
+      STORAGE_BASE_PATH: /storage
+      WORK_DIR: /app/storage/work
+      # 本地模式下 file_url 需要绝对地址，填对外访问入口（IP 或域名，不带路径）
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     ports:
       - "${SERVER_HOST_PORT:-18080}:18080"
     depends_on:

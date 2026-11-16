@@ -34,8 +34,9 @@ type Config struct {
 	OSSObjectPrefix    string
 	OSSRegion          string
 
-	StorageDir  string // 本地降级目录
-	StorageBase string // 本地降级访问前缀
+	StorageDir    string // 本地降级目录
+	StorageBase   string // 本地降级访问前缀
+	PublicBaseURL string // 对外可访问的基地址（含协议与端口），用于拼本地文件的绝对 URL
 
 	// 微信小程序登录（code2session）。未配置时降级为本地开发单用户。
 	WeChatAppID     string
@@ -98,6 +99,7 @@ func Load() (*Config, error) {
 			OSSRegion:          getEnv("ALIYUN_OSS_REGION", ""),
 			StorageDir:         getEnv("STORAGE_DIR", "../storage"),
 			StorageBase:        getEnv("STORAGE_BASE_PATH", "/storage"),
+			PublicBaseURL:      getEnv("PUBLIC_BASE_URL", ""),
 			WeChatAppID:        getEnv("WECHAT_APP_ID", ""),
 			WeChatAppSecret:    getEnv("WECHAT_APP_SECRET", ""),
 			DeepSeekAPIKey:     getEnv("DEEPSEEK_API_KEY", ""),

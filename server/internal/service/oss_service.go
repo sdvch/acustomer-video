@@ -173,7 +173,12 @@ func (s *OSSService) UploadLocalFile(localPath, objectKey string) error {
 }
 
 func (s *OSSService) localURL(objectKey string) string {
-	return strings.TrimRight(s.cfg.StorageBase, "/") + "/" + cleanKey(objectKey)
+	p := strings.TrimRight(s.cfg.StorageBase, "/") + "/" + cleanKey(objectKey)
+	// 本地模式下面向小程序的 URL 需要是绝对地址（保存相册/播放都直接用它）
+	if base := strings.TrimRight(s.cfg.PublicBaseURL, "/"); base != "" {
+		return base + p
+	}
+	return p
 }
 
 func cleanKey(k string) string {

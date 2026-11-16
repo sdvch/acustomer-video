@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"os"
+
 	"acustomer-video-server/config"
 	"acustomer-video-server/internal/middleware"
 	"acustomer-video-server/internal/service"
@@ -16,6 +18,12 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	assetH := NewAssetHandler(cfg, oss)
 	projectH := NewProjectHandler(cfg, oss)
 	aiH := NewAIHandler(cfg)
+
+	// 本地降级模式：素材与成片由后端直接提供静态访问；OSS 模式改用签名 URL
+	if !oss.Enabled() {
+		_ = os.MkdirAll(cfg.StorageDir, 0755)
+		r.Static(cfg.StorageBase, cfg.StorageDir)
+	}
 
 	v1 := r.Group("/api/v1")
 	{
