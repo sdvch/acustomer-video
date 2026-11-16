@@ -31,8 +31,8 @@ export async function ensureLogin(): Promise<string> {
 }
 
 function getPlatform(): string {
-  // 仅支持微信小程序
-  return 'wechat'
+  // weapp 走微信登录；h5 无微信登录能力，后端会落到 dev 用户（配置 WECHAT_APP_ID 后仅 weapp 走真实登录）
+  return process.env.TARO_ENV === 'h5' ? 'h5' : 'wechat'
 }
 
 export async function request<T = any>(path: string, options: {

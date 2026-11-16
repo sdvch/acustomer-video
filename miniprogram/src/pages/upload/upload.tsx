@@ -41,6 +41,7 @@ export default function Upload() {
           token: getToken(),
           apiBase: API_BASE,
           localMode: ps.local_mode,
+          file: p.file, // h5 端：原生 File，避免二次读取
         })
         setProgressText(`质检中 ${i + 1}/${picked.length}`)
         // 服务端用 ffprobe 复核真实宽高/时长，并返回质检警告

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Button, Input } from '@tarojs/components'
 import { api } from '../../services/api'
+import { copyText } from '../../platform'
 import { useStore } from '../../store'
 import type { CopyResult } from '../../types'
 import './editor.scss'
@@ -79,10 +80,6 @@ export default function Editor() {
     } finally {
       setCopyLoading(false)
     }
-  }
-
-  function copyText(text: string) {
-    Taro.setClipboardData({ data: text })
   }
 
   return (

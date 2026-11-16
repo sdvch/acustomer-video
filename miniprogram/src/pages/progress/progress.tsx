@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Taro, { useRouter } from '@tarojs/taro'
 import { View, Text, Progress, Button } from '@tarojs/components'
 import { api } from '../../services/api'
+import { copyText } from '../../platform'
 import type { ComposeJob } from '../../types'
 import './progress.scss'
 
@@ -64,8 +65,7 @@ export default function ProgressPage() {
           <Button className='btn-primary' onClick={() => Taro.redirectTo({ url: '/pages/works/works' })}>查看作品</Button>
           {job?.result && (
             <Button className='btn-secondary' onClick={() => {
-              Taro.setClipboardData({ data: job.result!.file_url })
-              Taro.showToast({ title: '链接已复制', icon: 'none' })
+              copyText(job.result!.file_url).then(() => Taro.showToast({ title: '链接已复制', icon: 'none' })).catch(() => {})
             }}>复制下载链接</Button>
           )}
         </>

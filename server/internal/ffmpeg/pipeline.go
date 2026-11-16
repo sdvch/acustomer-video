@@ -72,11 +72,15 @@ func (pl *Pipeline) Run(ctx context.Context, workDir string, segs []Segment, cb 
 		if seg.DurMs > 0 {
 			segTotalUS = seg.DurMs * 1000
 		}
-		runFFmpeg(ctx, pl, pl.preset.FFmpegPath, args, func(us int64) {
+		runErr := runFFmpeg(ctx, pl, pl.preset.FFmpegPath, args, func(us int64) {
 			if cb != nil {
 				cb("transcode", segBase+pctFromTime(us, segTotalUS)*segSpan/100)
 			}
 		})
+		if runErr != nil {
+			// 优先报出 ffmpeg 的真实错误（含 stderr 尾部），便于定位坏素材
+			return nil, fmt.Errorf("片段 %d 转码失败: %w", i, runErr)
+		}
 		if _, err := os.Stat(out); err != nil {
 			return nil, fmt.Errorf("片段 %d 转码失败: %w", i, err)
 		}
@@ -129,7 +133,9 @@ func (pl *Pipeline) concat(segFiles []string, output string, ctx context.Context
 		"-y", "-f", "concat", "-safe", "0", "-i", listPath,
 		"-c", "copy", "-movflags", "+faststart", output,
 	}
-	runFFmpeg(ctx, pl, pl.preset.FFmpegPath, args, nil)
+	if err := runFFmpeg(ctx, pl, pl.preset.FFmpegPath, args, nil); err != nil {
+		return fmt.Errorf("concat 拼接失败: %w", err)
+	}
 	if _, err := os.Stat(output); err != nil {
 		return fmt.Errorf("concat 拼接失败: %w", err)
 	}

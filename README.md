@@ -41,12 +41,13 @@ go run ./cmd/server       # 监听 :18080，自动执行 migrations 建表
 cd miniprogram
 npm install
 npm run dev        # 编译到 dist/weapp，用微信开发者工具打开
-npm run build:h5   # 编译 H5 到 dist/h5（浏览器预览界面用）
+npm run build:h5   # 编译 H5 到 dist/h5（浏览器完整版，构建时注入 API_BASE）
 ```
 
 > 接口地址由 `config/index.ts` 的 `API_BASE` 决定，构建时可用 `API_BASE=http://<host>/acv/v1` 环境变量覆盖。
 > 小程序正式发布必须是已备案的 HTTPS 域名（占位符为 `https://your-domain.com/api/v1`）。
-> H5 仅用于浏览器查看界面（`hash` 路由、`publicPath=/acv-h5/`），素材选择/保存相册等依赖微信 API 的能力在 H5 不可用。
+> H5 与小程序共用一套平台适配层（`src/platform/`），按 `TARO_ENV` 在构建时分流到
+> `wechat.ts` / `h5.ts`，页面代码不含任何 `if (h5)` 分支。
 
 ### ffmpeg 流水线单独验证
 ```bash
@@ -150,8 +151,9 @@ docker compose up -d --build
 | 代码目录 | `/home/admin/acustomer-video`（git clone，`deploy/.env` 未入库） |
 | MySQL | 容器内 13306 映射，库 `acustomer_video`，与 storyboard 完全隔离 |
 
-> 只有微信小程序是正式投放端。H5 是同一份 Taro 代码编出来的浏览器预览版，用于快速看界面，
-> 素材选择（`chooseMedia`/`FileSystemManager`）在浏览器里不可用。
+> 微信小程序与 H5 浏览器版共用同一份 Taro 代码，能力对等：选素材（`<input type=file>`）、
+> OSS/后端上传、质检、合成、成片下载均已支持。差异仅在于"保存到相册"在 H5 是浏览器下载，
+> 且 H5 登录走 dev 用户（配置 `WECHAT_APP_ID` 后仅小程序走真实微信登录）。
 
 安全组只放行 80/443，18080 不直接对外，因此通过现有 nginx 加路径前缀反代（片段见 `deploy/nginx-acv.conf`，需并入 `/etc/nginx/nginx.conf` 的 80 `default_server`）。
 

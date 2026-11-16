@@ -1,14 +1,7 @@
 import Taro from '@tarojs/taro'
+import type { PickedAsset, UploadAssetParams } from './types'
 
-export interface PickedAsset {
-  path: string
-  size: number
-  type: 'image' | 'video'
-  mime: string
-  durationMs?: number
-  width?: number
-  height?: number
-}
+export type { PickedAsset }
 
 export function chooseAssets(count = 9): Promise<PickedAsset[]> {
   return new Promise((resolve, reject) => {
@@ -34,16 +27,7 @@ export function chooseAssets(count = 9): Promise<PickedAsset[]> {
   })
 }
 
-export function uploadAsset(params: {
-  filePath: string
-  uploadUrl?: string
-  objectKey: string
-  assetId: number
-  mime: string
-  token: string
-  apiBase: string
-  localMode: boolean
-}): Promise<void> {
+export function uploadAsset(params: UploadAssetParams): Promise<void> {
   const { filePath, uploadUrl, mime, apiBase, token, localMode, assetId, objectKey } = params
   return new Promise((resolve, reject) => {
     if (!localMode && uploadUrl) {
@@ -116,5 +100,11 @@ export function saveToAlbum(url: string): Promise<void> {
       },
       fail: reject,
     })
+  })
+}
+
+export function copyText(text: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    Taro.setClipboardData({ data: text, success: () => resolve(), fail: reject })
   })
 }
