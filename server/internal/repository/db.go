@@ -41,7 +41,13 @@ func Init(cfg *config.Config) error {
 	if err := applyMigrations(db, "migrations"); err != nil {
 		return err
 	}
-	return ensureSchemaUpgrades(db)
+	if err := ensureSchemaUpgrades(db); err != nil {
+		return err
+	}
+	if err := SeedAdmin(db, cfg); err != nil {
+		return err
+	}
+	return nil
 }
 
 // ensureSchemaUpgrades 幂等补齐后续版本新增的列（MySQL 无 ADD COLUMN IF NOT EXISTS）。
@@ -53,6 +59,9 @@ func ensureSchemaUpgrades(db *sql.DB) error {
 		{"users", "last_login_at", "ALTER TABLE users ADD COLUMN last_login_at DATETIME DEFAULT NULL"},
 		{"assets", "qc_json", "ALTER TABLE assets ADD COLUMN qc_json TEXT"},
 		{"assets", "probe_verified", "ALTER TABLE assets ADD COLUMN probe_verified TINYINT(1) NOT NULL DEFAULT 0"},
+		{"users", "phone", "ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT NULL"},
+		{"users", "password_hash", "ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) DEFAULT ''"},
+		{"users", "status", "ALTER TABLE users ADD COLUMN status TINYINT NOT NULL DEFAULT 1"},
 	}
 	for _, c := range cols {
 		var n int
@@ -66,6 +75,24 @@ func ensureSchemaUpgrades(db *sql.DB) error {
 		}
 		if _, err := db.Exec(c.ddl); err != nil {
 			return fmt.Errorf("新增列 %s.%s 失败: %w", c.table, c.column, err)
+		}
+	}
+	// 手机号唯一索引（可空列，未绑定的微信用户为 NULL 不受唯一约束）
+	idx := []struct{ table, index, ddl string }{
+		{"users", "uk_phone", "ALTER TABLE users ADD UNIQUE KEY uk_phone (phone)"},
+	}
+	for _, ix := range idx {
+		var n int
+		err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.statistics
+			WHERE table_schema=DATABASE() AND table_name=? AND index_name=?`, ix.table, ix.index).Scan(&n)
+		if err != nil {
+			return fmt.Errorf("检查索引 %s.%s 失败: %w", ix.table, ix.index, err)
+		}
+		if n > 0 {
+			continue
+		}
+		if _, err := db.Exec(ix.ddl); err != nil {
+			return fmt.Errorf("新增索引 %s.%s 失败: %w", ix.table, ix.index, err)
 		}
 	}
 	return nil

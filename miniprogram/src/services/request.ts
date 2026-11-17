@@ -13,13 +13,17 @@ export function setToken(token: string) {
 export async function ensureLogin(): Promise<string> {
   let token = getToken()
   if (token) return token
+  // H5：不再静默 dev 登录，引导到注册/登录页
+  if (process.env.TARO_ENV === 'h5') {
+    Taro.navigateTo({ url: '/pages/login/login' })
+    throw new Error('请先登录')
+  }
   let code = ''
   try {
     const res = await Taro.login()
     code = res.code
   } catch {
-    // 浏览器预览（h5）没有微信登录能力，退化为固定 code：后端未配 WECHAT_APP_ID 时走 dev 单用户
-    code = 'h5-preview'
+    code = ''
   }
   const resp = await request<any>('/auth/login', {
     method: 'POST',
@@ -36,7 +40,7 @@ function getPlatform(): string {
 }
 
 export async function request<T = any>(path: string, options: {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   data?: any
 } = {}, needAuth = true): Promise<T> {
   const header: any = { 'Content-Type': 'application/json' }
@@ -58,6 +62,10 @@ export async function request<T = any>(path: string, options: {
   if (body && body.code === 0) return body.data as T
   if (body && body.code === 401) {
     Taro.removeStorageSync(TOKEN_KEY)
+    // H5 统一跳登录页；小程序下次请求会重新静默登录
+    if (process.env.TARO_ENV === 'h5') {
+      Taro.navigateTo({ url: '/pages/login/login' })
+    }
   }
   throw new Error(body?.message || '请求失败')
 }

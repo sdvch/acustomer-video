@@ -29,11 +29,14 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 	{
 		v1.GET("/health", Health(cfg))
 		v1.POST("/auth/login", Login(cfg))
+		v1.POST("/auth/login-phone", PhoneLogin(cfg))
+		v1.POST("/auth/register", Register(cfg))
 
 		authed := v1.Group("")
 		authed.Use(middleware.JWTAuth(cfg.JWTSecret))
 		{
 			authed.GET("/auth/profile", Profile())
+			authed.PUT("/auth/bind-phone", BindPhone())
 
 			// M2: 素材上传链路
 			authed.POST("/assets/presign", assetH.Presign)
@@ -55,6 +58,35 @@ func NewRouter(cfg *config.Config) *gin.Engine {
 
 			// SOP 阶段五：文案生成（DeepSeek）
 			authed.POST("/ai/copy", aiH.GenerateCopy)
+		}
+
+		// 管理后台（scope=admin 独立令牌，httpOnly Cookie 或 Bearer）
+		adminH := NewAdminHandler(cfg)
+		admin := v1.Group("/admin")
+		{
+			admin.POST("/auth/login", adminH.Login)
+			adminAuthed := admin.Group("")
+			adminAuthed.Use(middleware.AdminAuth(cfg.JWTSecret))
+			{
+				adminAuthed.POST("/auth/logout", adminH.Logout)
+				adminAuthed.GET("/auth/profile", adminH.Profile)
+
+				// 用户管理
+				adminAuthed.GET("/users", adminH.ListUsers)
+				adminAuthed.GET("/users/:id", adminH.UserDetail)
+				adminAuthed.PATCH("/users/:id/status", adminH.SetUserStatus)
+				adminAuthed.POST("/users/:id/reset-password", adminH.ResetUserPassword)
+				adminAuthed.GET("/users/:id/projects", adminH.UserProjects)
+
+				// 数据总览 / 内容审查
+				adminAuthed.GET("/stats/overview", adminH.StatsOverview)
+				adminAuthed.DELETE("/videos/:id", adminH.DeleteVideo)
+
+				// 管理员账号管理（handler 内校验超管权限）
+				adminAuthed.GET("/admins", adminH.ListAdmins)
+				adminAuthed.POST("/admins", adminH.CreateAdmin)
+				adminAuthed.PATCH("/admins/:id", adminH.UpdateAdmin)
+			}
 		}
 	}
 	return r

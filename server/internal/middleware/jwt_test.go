@@ -98,3 +98,58 @@ func TestIssueTokenFormat(t *testing.T) {
 		t.Error("token 不应为空")
 	}
 }
+
+// token 作用域隔离：管理端 token 不能访问用户接口，用户 token 不能访问管理接口
+func TestJWTAuthScopeIsolation(t *testing.T) {
+	secret := "test-secret"
+	userTok, _ := IssueToken(secret, 42, 1)
+	adminTok, _ := IssueAdminToken(secret, 7, "super", 1)
+
+	cases := []struct {
+		name     string
+		mw       gin.HandlerFunc
+		token    string
+		wantCode int
+		wantPass bool
+	}{
+		{"用户token过JWTAuth", JWTAuth(secret), userTok, 200, true},
+		{"管理token被JWTAuth拒绝", JWTAuth(secret), adminTok, 401, false},
+		{"用户token被AdminAuth拒绝", AdminAuth(secret), userTok, 401, false},
+		{"管理token过AdminAuth", AdminAuth(secret), adminTok, 200, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", "/", nil)
+			c.Request.Header.Set("Authorization", "Bearer "+tc.token)
+			tc.mw(c)
+			if tc.wantPass {
+				if !c.IsAborted() && w.Code == 200 {
+					return
+				}
+				t.Fatalf("应放行，实际 code=%d aborted=%v", w.Code, c.IsAborted())
+			}
+			if w.Code != tc.wantCode {
+				t.Fatalf("应返回 %d，实际 %d body=%s", tc.wantCode, w.Code, w.Body.String())
+			}
+		})
+	}
+}
+
+// AdminAuth 应能从 Cookie 读 token
+func TestAdminAuthFromCookie(t *testing.T) {
+	secret := "test-secret"
+	tok, _ := IssueAdminToken(secret, 3, "operator", 1)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/", nil)
+	c.Request.AddCookie(&http.Cookie{Name: "admin_token", Value: tok})
+	AdminAuth(secret)(c)
+	if c.IsAborted() {
+		t.Fatalf("Cookie 鉴权应通过，实际 code=%d", w.Code)
+	}
+	if c.GetInt64("adminID") != 3 || c.GetString("adminRole") != "operator" {
+		t.Errorf("上下文注入错误: adminID=%d role=%s", c.GetInt64("adminID"), c.GetString("adminRole"))
+	}
+}

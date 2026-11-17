@@ -42,6 +42,10 @@ type Config struct {
 	WeChatAppID     string
 	WeChatAppSecret string
 
+	// 管理后台：首个超管种子（admins 表为空时创建一次）
+	AdminSeedUsername string
+	AdminSeedPassword string
+
 	// DeepSeek（文案等文本类大模型统一走这里）
 	DeepSeekAPIKey     string
 	DeepSeekBaseURL    string
@@ -101,6 +105,8 @@ func Load() (*Config, error) {
 			StorageBase:        getEnv("STORAGE_BASE_PATH", "/storage"),
 			PublicBaseURL:      getEnv("PUBLIC_BASE_URL", ""),
 			WeChatAppID:        getEnv("WECHAT_APP_ID", ""),
+			AdminSeedUsername:  getEnv("ADMIN_USERNAME", "admin"),
+			AdminSeedPassword:  getEnv("ADMIN_PASSWORD", ""),
 			WeChatAppSecret:    getEnv("WECHAT_APP_SECRET", ""),
 			DeepSeekAPIKey:     getEnv("DEEPSEEK_API_KEY", ""),
 			DeepSeekBaseURL:    getEnv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),

@@ -18,16 +18,42 @@ const (
 	AssetVideo = 2
 )
 
+// 用户状态
+const (
+	UserActive  = 1
+	UserBlocked = 0
+)
+
+// 管理员角色
+const (
+	AdminRoleSuper    = "super"
+	AdminRoleOperator = "operator"
+)
+
 // User 账户
 type User struct {
-	ID         int64  `json:"id"`
-	OpenID     string `json:"open_id"`
-	Platform   string `json:"platform"`
-	Nickname   string `json:"nickname"`
-	MemberTier string `json:"member_tier"`
-	MonthQuota int    `json:"month_quota"`
-	UsedQuota  int    `json:"used_quota"`
-	CreatedAt  string `json:"created_at"`
+	ID           int64  `json:"id"`
+	OpenID       string `json:"open_id"`
+	Platform     string `json:"platform"`
+	Nickname     string `json:"nickname"`
+	Phone        string `json:"phone"`
+	PasswordHash string `json:"-"`
+	Status       int    `json:"status"`
+	MemberTier   string `json:"member_tier"`
+	MonthQuota   int    `json:"month_quota"`
+	UsedQuota    int    `json:"used_quota"`
+	CreatedAt    string `json:"created_at"`
+}
+
+// Admin 管理员（与用户体系完全隔离）
+type Admin struct {
+	ID           int64  `json:"id"`
+	Username     string `json:"username"`
+	PasswordHash string `json:"-"`
+	Role         string `json:"role"` // super / operator
+	Status       int    `json:"status"`
+	LastLoginAt  string `json:"last_login_at"`
+	CreatedAt    string `json:"created_at"`
 }
 
 // Asset 素材（SOP 表14）

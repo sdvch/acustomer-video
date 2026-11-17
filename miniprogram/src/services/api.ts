@@ -1,7 +1,21 @@
 import { request } from './request'
-import type { Asset, ComposeJob, Video, ComposeProject, ConfirmResult, CopyResult } from '../types'
+import type { Asset, ComposeJob, Video, ComposeProject, ConfirmResult, CopyResult, AuthResult, UserProfile } from '../types'
 
 export const api = {
+  // 认证
+  phoneLogin(phone: string, password: string) {
+    return request<AuthResult>('/auth/login-phone', { method: 'POST', data: { phone, password } })
+  },
+  register(phone: string, password: string, nickname?: string) {
+    return request<AuthResult>('/auth/register', { method: 'POST', data: { phone, password, nickname } })
+  },
+  profile() {
+    return request<UserProfile>('/auth/profile')
+  },
+  bindPhone(phone: string, password: string) {
+    return request('/auth/bind-phone', { method: 'PUT', data: { phone, password } })
+  },
+
   // 素材
   presign(data: { filename: string; mime: string; type: number; shot_no: number }) {
     return request<{ asset_id: number; object_key: string; upload_url: string; local_mode: boolean }>(

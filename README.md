@@ -20,7 +20,8 @@
 
 ## 目录
 
-- `miniprogram/` — Taro 微信小程序（仅 weapp 端）
+- `miniprogram/` — Taro 前端（微信小程序 + H5 双端）
+- `admin/` — 管理后台（React + Vite + Ant Design，挂 `/acv-admin/`）
 - `server/` — Go 后端（API + 异步 worker + ffmpeg 流水线）
 - `deploy/` — docker-compose / nginx / CORS 配置
 - `docs/` — 架构 / API / ffmpeg 规格文档
@@ -86,10 +87,14 @@ WECHAT_APP_SECRET=...
 DEEPSEEK_API_KEY=sk-...      # 复用短剧项目同一个 key
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
+ADMIN_USERNAME=admin          # 管理后台首个超管（admins 表为空时种子创建）
+ADMIN_PASSWORD=...            # 留空则启动时生成随机密码并打日志
 ```
 
 - 登录：`wx.login` → `POST /auth/login`，服务端 `jscode2session` 换 openid，按 `(open_id, platform)` 落 `users` 表并签发 JWT（7 天）。所有业务接口现在**必须**带 token。
+- 手机号注册登录：`POST /auth/register` / `POST /auth/login-phone`（H5 主登录方式），详见 `docs/api.md`。
 - 文案：`POST /ai/copy` 生成 3 条钩子 + 正文 + CTA，编辑页有"AI 生成获客文案"按钮，点钩子可复制（详见 `docs/api.md`）。
+- 管理后台：`http://<IP>/acv-admin/`（管理员账号与用户体系完全隔离；用户管理/数据总览/内容审查/管理员管理）。
 
 
 ## 持续集成与发布

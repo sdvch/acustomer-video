@@ -8,3 +8,27 @@
 }
 .nickname { display: block; font-size: 34rpx; font-weight: 700; margin-bottom: 8rpx; }
 .tip-line { display: block; font-size: 26rpx; line-height: 1.9; }
+
+.login-btn {
+  background: #6c5ce7;
+  color: #fff;
+  border: none;
+  border-radius: 28px;
+  padding: 0 28px;
+
+  &::after {
+    border: none;
+  }
+}
+
+.logout-btn {
+  width: 100%;
+  color: #e74c3c;
+  background: #fff;
+  border: 1px solid #f0d9d6;
+  border-radius: 16px;
+
+  &::after {
+    border: none;
+  }
+}

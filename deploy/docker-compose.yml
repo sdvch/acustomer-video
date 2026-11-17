@@ -45,6 +45,9 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: "3306"
+      # 管理后台首个超管种子（admins 表为空时创建一次；密码建议部署后登录修改）
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       # 本地降级目录必须与下方 volume 挂载点一致，否则成片写在容器内、重启即丢
       STORAGE_DIR: /app/storage
       STORAGE_BASE_PATH: /storage

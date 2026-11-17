@@ -6,6 +6,9 @@ Base: `/api/v1`　统一响应：`{code, data, message}`（code=0 成功）。�
 | Method | Path | 请求 | 返回 |
 |---|---|---|---|
 | POST | `/auth/login` | `{platform, code, nickname?}` | `{token, dev_mode, user{id,platform,open_id}}` |
+| POST | `/auth/register` | `{phone, password, nickname?}` | `{token, user}` |
+| POST | `/auth/login-phone` | `{phone, password}` | `{token, user}` |
+| PUT | `/auth/bind-phone` | `{phone, password}`（JWT） | `{phone}` |
 | GET | `/auth/profile` | - | 当前用户 `{id,open_id,masked,month_quota,used_quota,...}` |
 | GET | `/health` | - | ffmpeg 状态、db、bucket |
 
@@ -13,6 +16,29 @@ Base: `/api/v1`　统一响应：`{code, data, message}`（code=0 成功）。�
 - 配置了 `WECHAT_APP_ID/WECHAT_APP_SECRET` → 调微信 `jscode2session` 换 openid，按 `(open_id, platform)` upsert `users`。
 - 未配置 → 本地开发模式（`dev_mode=true`），固定开发用户，便于本机联调。
 - `code` 失效/重复使用返回 `code=4001`，前端应重新 `wx.login()`。
+- 手机号注册：11 位大陆手机号 + ≥8 位密码，bcrypt 存储；手机号已注册返回 409；被禁用用户登录返回 403，已持有 token 的业务请求返回 401（JWT 中间件按库内状态实时拦截）。
+
+## 管理后台（/admin/*）
+管理端独立令牌（scope=admin + httpOnly Cookie `admin_token`，也兼容 Authorization 头）。与用户 token 完全隔离：用户 token 访问管理接口 401，管理 token 访问用户接口 401。
+
+| Method | Path | 请求 | 返回 |
+|---|---|---|---|
+| POST | `/admin/auth/login` | `{username, password}` | `{id, username, role}`（设 Cookie） |
+| POST | `/admin/auth/logout` | - | 清除 Cookie |
+| GET | `/admin/auth/profile` | - | 当前管理员 |
+| GET | `/admin/users` | `?keyword=&page=&size=` | `{list, total, page, size}`（含项目/成片计数） |
+| GET | `/admin/users/:id` | - | 用户详情 |
+| PATCH | `/admin/users/:id/status` | `{status: 0\|1}` | 禁用/启用 |
+| POST | `/admin/users/:id/reset-password` | - | `{new_password}`（仅显示一次） |
+| GET | `/admin/users/:id/projects` | - | `{projects[], videos[]}` |
+| DELETE | `/admin/videos/:id` | - | 下架成片 |
+| GET | `/admin/stats/overview` | - | `{total_users, today_users, total_projects, total_videos, total_jobs, storage_bytes}` |
+| GET | `/admin/admins` | -（仅超管） | 管理员列表 |
+| POST | `/admin/admins` | `{username, password, role}`（仅超管） | 新管理员 |
+| PATCH | `/admin/admins/:id` | `{role?, status?, password?}`（仅超管） | 更新 |
+
+- 首个超管由 `ADMIN_USERNAME`/`ADMIN_PASSWORD` 环境变量在启动时种子创建（admins 表为空时）；未配置密码则生成随机密码输出到启动日志。
+- 管理后台前端：`http://<IP>/acv-admin/`（React+AntD，源码在 `admin/`）。
 
 ## 素材
 | Method | Path | 请求 | 返回 |

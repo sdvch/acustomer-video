@@ -1,0 +1,61 @@
+.login {
+  padding: 120px 40px 40px;
+
+  .title {
+    font-size: 40px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 26px;
+    color: #8a8a99;
+    text-align: center;
+    margin-bottom: 80px;
+  }
+
+  .form {
+    .input {
+      height: 88px;
+      padding: 0 28px;
+      background: #fff;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      font-size: 28px;
+    }
+
+    .submit {
+      margin-top: 24px;
+      background: #6c5ce7;
+      color: #fff;
+      border-radius: 16px;
+      font-size: 30px;
+      border: none;
+
+      &::after {
+        border: none;
+      }
+    }
+
+    .switch {
+      margin-top: 40px;
+      text-align: center;
+      color: #6c5ce7;
+      font-size: 26px;
+    }
+  }
+
+  .tip {
+    position: fixed;
+    bottom: 60px;
+    left: 40px;
+    right: 40px;
+    text-align: center;
+
+    .muted {
+      color: #b3b3bf;
+      font-size: 22px;
+    }
+  }
+}

@@ -138,6 +138,32 @@ jobs:
             console.log("index.html 引用了全部 " + chunks.length + " 个 initial chunk");
           '
 
+  admin:
+    name: 管理后台 · 类型检查与构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查与构建
+        run: npm run build
+
+      - name: 检查构建产物
+        run: |
+          test -f dist/index.html || { echo "::error::缺少 dist/index.html"; exit 1; }
+          echo "产物文件数: $(find dist -type f | wc -l)"
+
   docker:
     name: 部署 · 镜像可构建性
     runs-on: ubuntu-latest

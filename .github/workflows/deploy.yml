@@ -24,7 +24,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: miniprogram/package-lock.json
+          cache-dependency-path: |
+            miniprogram/package-lock.json
+            admin/package-lock.json
 
       - name: 构建 H5（注入线上 API 地址）
         working-directory: miniprogram
@@ -42,8 +44,17 @@ jobs:
         env:
           API_BASE: http://8.152.208.234/acv/v1
 
+      - name: 构建管理后台
+        working-directory: admin
+        run: |
+          npm ci
+          npm run build
+
       - name: 打包 H5 产物
         run: tar czf acv-h5.tar.gz -C miniprogram/dist/h5 .
+
+      - name: 打包管理后台产物
+        run: tar czf acv-admin.tar.gz -C admin/dist .
 
       - name: 上传 H5 产物到服务器
         uses: appleboy/scp-action@v1
@@ -52,6 +63,15 @@ jobs:
           username: ${{ secrets.ECS_USER }}
           key: ${{ secrets.ECS_SSH_KEY }}
           source: acv-h5.tar.gz
+          target: /tmp
+
+      - name: 上传管理后台产物到服务器
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          source: acv-admin.tar.gz
           target: /tmp
 
       - name: 部署后端并发布 H5
@@ -74,3 +94,11 @@ jobs:
             sudo chown -R admin:admin /home/admin/acv-h5
             rm -f /tmp/acv-h5.tar.gz
             curl -s -o /dev/null -m 10 -w "H5 index: %{http_code}\n" http://127.0.0.1/acv-h5/
+
+            # 管理后台：解压到 nginx 静态目录
+            sudo mkdir -p /home/admin/acv-admin
+            sudo rm -rf /home/admin/acv-admin/*
+            sudo tar xzf /tmp/acv-admin.tar.gz -C /home/admin/acv-admin
+            sudo chown -R admin:admin /home/admin/acv-admin
+            rm -f /tmp/acv-admin.tar.gz
+            curl -s -o /dev/null -m 10 -w "Admin index: %{http_code}\n" http://127.0.0.1/acv-admin/

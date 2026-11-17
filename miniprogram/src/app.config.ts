@@ -6,6 +6,7 @@ export default defineAppConfig({
     'pages/progress/progress',
     'pages/works/works',
     'pages/mine/mine',
+    'pages/login/login',
   ],
   window: {
     backgroundTextStyle: 'dark',

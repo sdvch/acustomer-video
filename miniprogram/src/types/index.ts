@@ -74,3 +74,20 @@ export interface ComposeJob {
   result_video_id: number
   result?: Video
 }
+
+export interface AuthResult {
+  token: string
+  dev_mode?: boolean
+  user: { id: number; nickname?: string; phone?: string; platform: string; open_id?: string }
+}
+
+export interface UserProfile {
+  id: number
+  nickname: string
+  phone: string
+  platform: string
+  member_tier: string
+  month_quota: number
+  used_quota: number
+  created_at: string
+}
