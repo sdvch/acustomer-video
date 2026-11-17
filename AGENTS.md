@@ -32,6 +32,7 @@ cd miniprogram && npx tsc --noEmit
 - 出口断言 `ffmpeg.Validate` 逐项校验规格，不得绕过；成片时长 25-35s 强制
 - worker 认领任务用 `FOR UPDATE SKIP LOCKED`（ClaimJob），勿改
 - 路由前缀代码内固定 `/api/v1`（`handler/router.go`）；对外 nginx 反代为 `/acv/v1`。新接口挂 `v1 := r.Group("/api/v1")` 下并走 authed 中间件（业务接口必须带 JWT）
+- **文本大模型只用 DeepSeek，没有备选**（已定决策）：`internal/service/llm/client.go` 单一实现，配置只走 `DEEPSEEK_*` 环境变量；禁止引入多厂商抽象、备选模型、降级链路。需要换模型时改 `DEEPSEEK_MODEL` 一个变量即可
 
 ## 前端约定
 
